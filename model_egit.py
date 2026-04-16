@@ -9,7 +9,7 @@ import pickle
 
 # Veriyi yükle
 df = pd.read_csv('data/ogrenci_veri.csv')
-X = df.drop(columns=['risk_grubu'])
+X = df.drop(columns=['risk_grubu', 'ogrenci_id'])
 y = df['risk_grubu']
 
 # SMOTE ile sınıf dengesi
@@ -40,6 +40,14 @@ xgb_model = xgb_grid.best_estimator_
 xgb_pred = xgb_model.predict(X_test)
 print(f"XGB Accuracy: {accuracy_score(y_test, xgb_pred):.4f}")
 print(f"XGB F1 Score: {f1_score(y_test, xgb_pred, average='macro'):.4f}")
+
+# AUC-ROC
+from sklearn.preprocessing import label_binarize
+y_test_bin = label_binarize(y_test, classes=[0, 1, 2])
+xgb_prob = xgb_model.predict_proba(X_test)
+rf_prob = rf_model.predict_proba(X_test)
+print(f"\nXGB AUC-ROC: {roc_auc_score(y_test_bin, xgb_prob, multi_class='ovr', average='macro'):.4f}")
+print(f"RF AUC-ROC:  {roc_auc_score(y_test_bin, rf_prob, multi_class='ovr', average='macro'):.4f}")
 
 # En iyi modeli seç ve kaydet
 if f1_score(y_test, rf_pred, average='macro') >= f1_score(y_test, xgb_pred, average='macro'):
